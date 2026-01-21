@@ -19,7 +19,7 @@ interface PaymentProps {
 type TransactionType = 'bayar_langsung' | 'open_bill'
 type PaymentMethod = 'cash' | 'qris' | 'debit'
 
-export default function Payment({ cart, grandTotal, cashierName, userId, onBack, onPaymentSuccess, existingTransactionId, existingTransactionNumber }: PaymentProps) {
+export default function Payment({ cart, grandTotal, cashierName, userId, onBack, onPaymentSuccess, existingTransactionId, existingTransactionNumber: _existingTransactionNumber }: PaymentProps) {
   const toast = useToast()
   const [transactionType, setTransactionType] = useState<TransactionType>('bayar_langsung')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')

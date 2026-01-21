@@ -16,7 +16,7 @@ const GridMotion: FC<GridMotionProps> = ({ items = [], gradientColor = 'rgba(255
   const defaultItems = Array.from({ length: totalItems }, (_, index) => `Item ${index + 1}`);
 
   // If items provided, duplicate them to fill all slots
-  let combinedItems = defaultItems;
+  let combinedItems: (string | ReactNode)[] = defaultItems;
   if (items.length > 0) {
     combinedItems = Array.from({ length: totalItems }, (_, index) => items[index % items.length]);
   }

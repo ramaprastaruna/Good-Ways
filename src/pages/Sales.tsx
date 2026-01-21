@@ -127,11 +127,10 @@ export default function Sales({ onPayBill }: SalesProps) {
         transactionDate: selectedTransaction.transaction_date,
         cashierName: selectedTransaction.cashier_name,
         items: selectedTransaction.items.map((item: any) => ({
-          name: item.product_name,
+          product_name: item.product_name,
           variant: item.variant,
           addOns: item.addOns || [],
           quantity: item.quantity,
-          price: item.totalPrice / item.quantity,
           totalPrice: item.totalPrice
         })),
         subtotal: selectedTransaction.total,
@@ -634,8 +633,13 @@ export default function Sales({ onPayBill }: SalesProps) {
           cashierName={selectedTransaction.cashier_name}
           cart={selectedTransaction.items.map((item: any) => ({
             product: {
+              id: '',
               name: item.product_name,
-              price: item.totalPrice / item.quantity
+              price: item.totalPrice / item.quantity,
+              category: '',
+              recipe: null,
+              image_url: '',
+              created_at: ''
             },
             variant: item.variant,
             addOns: item.addOns || [],

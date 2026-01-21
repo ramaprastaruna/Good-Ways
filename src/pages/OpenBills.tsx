@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { CartItem } from './Cashier'
 import { useToast } from '../components/ToastContainer'
 import { useConfirm } from '../components/ConfirmDialog'
 

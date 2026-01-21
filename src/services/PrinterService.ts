@@ -14,14 +14,11 @@ class PrinterService {
   private isConnected: boolean = false
 
   // ESC/POS Commands
-  private readonly ESC = '\x1B'
-  private readonly GS = '\x1D'
 
   // Initialize commands
   private readonly CMD_INIT = '\x1B\x40' // Initialize printer
   private readonly CMD_CENTER = '\x1B\x61\x01' // Center align
   private readonly CMD_LEFT = '\x1B\x61\x00' // Left align
-  private readonly CMD_RIGHT = '\x1B\x61\x02' // Right align
 
   // Font commands
   private readonly CMD_BOLD_ON = '\x1B\x45\x01' // Bold ON
@@ -127,16 +124,6 @@ class PrinterService {
       // Small delay between chunks
       await new Promise(resolve => setTimeout(resolve, 10))
     }
-  }
-
-  /**
-   * Format text to fit 32 characters (58mm paper)
-   */
-  private formatLine(text: string, maxLength: number = 32): string {
-    if (text.length > maxLength) {
-      return text.substring(0, maxLength)
-    }
-    return text
   }
 
   /**
