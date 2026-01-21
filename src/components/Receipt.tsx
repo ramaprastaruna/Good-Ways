@@ -77,39 +77,39 @@ export default function Receipt({
       />
 
       {/* Receipt Modal */}
-      <div className="relative w-full max-w-sm backdrop-blur-3xl bg-white/90 rounded-2xl border border-black/10 shadow-2xl overflow-hidden m-4">
+      <div className="relative w-full max-w-[280px] backdrop-blur-3xl bg-white/90 rounded-xl border border-black/10 shadow-2xl overflow-hidden m-3">
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-black/10">
-          <h2 className="text-sm font-bold text-black">Struk Pembayaran</h2>
+        <div className="flex items-center justify-between p-2 border-b border-black/10">
+          <h2 className="text-[10px] font-bold text-black">Struk Pembayaran</h2>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-lg hover:bg-black/5 flex items-center justify-center transition-all"
+            className="w-5 h-5 rounded-lg hover:bg-black/5 flex items-center justify-center transition-all"
           >
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Receipt Content - Scrollable */}
-        <div className="p-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
+        <div className="p-2 max-h-[calc(100vh-10rem)] overflow-y-auto">
           {/* Receipt Paper Mockup - 58mm width */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 font-mono text-xs">
+          <div className="bg-white rounded-lg border border-gray-200 p-2 font-mono text-[9px]">
 
             {/* Header */}
-            <div className="text-center mb-3 pb-3 border-b border-dashed border-gray-300">
-              <div className="text-base font-bold mb-1">GOOD WAYS</div>
-              <div className="text-[10px] text-gray-600">Sistem Kasir Digital</div>
+            <div className="text-center mb-2 pb-2 border-b border-dashed border-gray-300">
+              <div className="text-xs font-bold mb-0.5">GOOD WAYS</div>
+              <div className="text-[8px] text-gray-600">Sistem Kasir Digital</div>
             </div>
 
             {/* Transaction Info */}
-            <div className="mb-3 pb-3 border-b border-dashed border-gray-300 text-[10px]">
-              <div className="flex justify-between mb-1">
+            <div className="mb-2 pb-2 border-b border-dashed border-gray-300 text-[8px]">
+              <div className="flex justify-between mb-0.5">
                 <span className="text-gray-600">Kasir:</span>
                 <span className="font-semibold">{cashierName}</span>
               </div>
-              <div className="flex justify-between mb-1">
+              <div className="flex justify-between mb-0.5">
                 <span className="text-gray-600">Tanggal:</span>
                 <span>{formatDate(transactionDate)}</span>
               </div>
@@ -118,7 +118,7 @@ export default function Receipt({
                 <span className="font-semibold">{transactionNumber}</span>
               </div>
               {customerName && (
-                <div className="flex justify-between mt-1">
+                <div className="flex justify-between mt-0.5">
                   <span className="text-gray-600">Pelanggan:</span>
                   <span className="font-semibold">{customerName}</span>
                 </div>
@@ -126,22 +126,22 @@ export default function Receipt({
             </div>
 
             {/* Items */}
-            <div className="mb-3 pb-3 border-b border-dashed border-gray-300">
-              <div className="font-semibold mb-2 text-center">RINCIAN PESANAN</div>
+            <div className="mb-2 pb-2 border-b border-dashed border-gray-300">
+              <div className="font-semibold mb-1 text-center text-[8px]">RINCIAN PESANAN</div>
 
               {cart.map((item, index) => (
-                <div key={index} className="mb-3 text-[10px]">
-                  <div className="flex justify-between font-semibold mb-1">
+                <div key={index} className="mb-2 text-[8px]">
+                  <div className="flex justify-between font-semibold mb-0.5">
                     <span>{item.product.name}</span>
                     <span>{formatPrice(item.product.price)}</span>
                   </div>
 
                   {item.variant && (
-                    <div className="pl-2 text-gray-600 text-[9px]">- {item.variant}</div>
+                    <div className="pl-1.5 text-gray-600 text-[7px]">- {item.variant}</div>
                   )}
 
                   {item.addOns.length > 0 && (
-                    <div className="pl-2 text-[9px]">
+                    <div className="pl-1.5 text-[7px]">
                       {item.addOns.map((addon, idx) => (
                         <div key={idx} className="flex justify-between text-gray-600">
                           <span>- {addon.name}</span>
@@ -151,7 +151,7 @@ export default function Receipt({
                     </div>
                   )}
 
-                  <div className="flex justify-between mt-1">
+                  <div className="flex justify-between mt-0.5">
                     <span className="text-gray-600">{item.quantity}x</span>
                     <span className="font-semibold">{formatPrice(item.totalPrice)}</span>
                   </div>
@@ -160,12 +160,12 @@ export default function Receipt({
             </div>
 
             {/* Total */}
-            <div className="mb-3 pb-3 border-b border-dashed border-gray-300">
-              <div className="flex justify-between mb-2">
+            <div className="mb-2 pb-2 border-b border-dashed border-gray-300 text-[8px]">
+              <div className="flex justify-between mb-1">
                 <span className="text-gray-600">Subtotal:</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
-              <div className="flex justify-between font-bold text-sm">
+              <div className="flex justify-between font-bold text-[9px]">
                 <span>TOTAL:</span>
                 <span>{formatPrice(total)}</span>
               </div>
@@ -173,16 +173,16 @@ export default function Receipt({
 
             {/* Payment Info */}
             {paymentMethod && (
-              <div className="mb-3 pb-3 border-b border-dashed border-gray-300 text-[10px]">
-                <div className="font-semibold mb-2 text-center">PEMBAYARAN</div>
-                <div className="flex justify-between mb-1">
+              <div className="mb-2 pb-2 border-b border-dashed border-gray-300 text-[8px]">
+                <div className="font-semibold mb-1 text-center">PEMBAYARAN</div>
+                <div className="flex justify-between mb-0.5">
                   <span className="text-gray-600">Metode:</span>
                   <span className="font-semibold uppercase">{paymentMethod}</span>
                 </div>
 
                 {paymentMethod === 'cash' && cashReceived && (
                   <>
-                    <div className="flex justify-between mb-1">
+                    <div className="flex justify-between mb-0.5">
                       <span className="text-gray-600">Bayar:</span>
                       <span>{formatPrice(cashReceived)}</span>
                     </div>
@@ -197,19 +197,19 @@ export default function Receipt({
 
             {/* Open Bill Info */}
             {!paymentMethod && customerName && (
-              <div className="mb-3 pb-3 border-b border-dashed border-gray-300 text-center">
-                <div className="text-yellow-600 font-semibold text-[10px]">
+              <div className="mb-2 pb-2 border-b border-dashed border-gray-300 text-center">
+                <div className="text-yellow-600 font-semibold text-[8px]">
                   ** OPEN BILL **
                 </div>
-                <div className="text-[9px] text-gray-600 mt-1">
+                <div className="text-[7px] text-gray-600 mt-0.5">
                   Belum dibayar
                 </div>
               </div>
             )}
 
             {/* Footer */}
-            <div className="text-center text-[9px] text-gray-600">
-              <div className="mb-1">Terima kasih atas kunjungan Anda!</div>
+            <div className="text-center text-[7px] text-gray-600">
+              <div className="mb-0.5">Terima kasih atas kunjungan Anda!</div>
               <div>Powered by Good Ways POS</div>
             </div>
 
@@ -217,13 +217,13 @@ export default function Receipt({
         </div>
 
         {/* Action Buttons */}
-        <div className="p-4 border-t border-black/10 flex gap-2">
+        <div className="p-2 border-t border-black/10 flex gap-1.5">
           {onPrint && (
             <button
               onClick={onPrint}
-              className="flex-1 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-[10px] font-semibold transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1.5"
+              className="flex-1 h-7 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-[9px] font-semibold transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
               Print Struk
@@ -231,7 +231,7 @@ export default function Receipt({
           )}
           <button
             onClick={onClose}
-            className="flex-1 h-10 bg-white/40 hover:bg-white/60 border border-white/30 rounded-lg text-[10px] font-semibold text-gray-700 transition-all"
+            className="flex-1 h-7 bg-white/40 hover:bg-white/60 border border-white/30 rounded-lg text-[9px] font-semibold text-gray-700 transition-all"
           >
             Tutup
           </button>
