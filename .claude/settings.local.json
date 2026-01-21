@@ -13,7 +13,10 @@
       "Bash(touch:*)",
       "Bash(npx tsc:*)",
       "Bash(findstr:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git add:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix Vercel deployment errors\n\n- Add vercel.json configuration for proper deployment\n- Move @supabase/supabase-js to dependencies \\(required at runtime\\)  \n- Configure build settings for Vercel\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }
