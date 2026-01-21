@@ -50,8 +50,8 @@ class UniversalPrintService {
    * Print receipt using iOS native print dialog
    */
   async printReceipt(receiptData: ReceiptData): Promise<void> {
-    // Create print window with smaller size (58mm = ~220px)
-    const printWindow = window.open('', '_blank', 'width=220,height=400')
+    // Create print window with 58mm width (~220px at 96dpi)
+    const printWindow = window.open('', '_blank', 'width=220,height=600')
 
     if (!printWindow) {
       throw new Error('Popup blocked. Izinkan popup untuk mencetak.')
@@ -147,7 +147,7 @@ class UniversalPrintService {
       <html>
       <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=220, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta name="description" content="Struk Pembayaran Good Ways POS">
         <title>Struk - ${data.transactionNumber}</title>
         <style>
@@ -158,24 +158,32 @@ class UniversalPrintService {
           }
 
           /* Page setup untuk printer thermal 58mm (58mm = ~220px at 96dpi) */
+          /* Multiple @page rules for better browser compatibility */
           @page {
-            size: 220px auto;
-            margin: 0;
+            size: 58mm auto;
+            margin: 0mm;
+          }
+
+          @page :first {
+            size: 58mm auto;
+            margin: 0mm;
           }
 
           html {
-            width: 220px;
+            width: 58mm;
+            height: auto;
             margin: 0;
             padding: 0;
           }
 
           body {
             font-family: 'Courier New', monospace;
-            width: 220px;
-            max-width: 220px;
-            min-width: 220px;
+            width: 58mm;
+            max-width: 58mm;
+            min-width: 58mm;
+            height: auto;
             margin: 0;
-            padding: 8px;
+            padding: 3mm;
             background: white;
             color: black;
             font-size: 10px;
@@ -184,32 +192,36 @@ class UniversalPrintService {
 
           .receipt-container {
             width: 100%;
-            max-width: 204px;
+            max-width: 52mm;
+            height: auto;
           }
 
           /* Media query khusus untuk print */
           @media print {
             @page {
-              size: 220px auto;
-              margin: 0;
+              size: 58mm auto !important;
+              margin: 0mm !important;
             }
 
             html {
-              width: 220px !important;
+              width: 58mm !important;
+              height: auto !important;
             }
 
             body {
-              width: 220px !important;
-              max-width: 220px !important;
-              min-width: 220px !important;
+              width: 58mm !important;
+              max-width: 58mm !important;
+              min-width: 58mm !important;
+              height: auto !important;
               margin: 0 !important;
-              padding: 8px !important;
+              padding: 3mm !important;
               font-size: 10px !important;
             }
 
             .receipt-container {
               width: 100% !important;
-              max-width: 204px !important;
+              max-width: 52mm !important;
+              height: auto !important;
             }
 
             .no-print {
@@ -217,7 +229,13 @@ class UniversalPrintService {
             }
           }
 
-          /* iOS specific */
+          /* Prevent page breaks inside important elements */
+          .receipt-container, .receipt-container > div {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+
+          /* iOS and Safari specific */
           @supports (-webkit-touch-callout: none) {
             body {
               -webkit-print-color-adjust: exact !important;
