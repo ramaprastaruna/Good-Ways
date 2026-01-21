@@ -221,7 +221,16 @@ export default function Products({ userRole }: ProductsProps) {
         return
       }
 
-      let imageUrl = editingProduct?.image_url || ''
+      let imageUrl = ''
+
+      // Check if we're editing and user removed the image (imagePreview is null but product had image)
+      if (editingProduct && !imagePreview && !formData.image) {
+        // User removed the image, set to empty string
+        imageUrl = ''
+      } else if (editingProduct && !formData.image) {
+        // No new image selected, keep existing image
+        imageUrl = editingProduct.image_url || ''
+      }
 
       // Upload image if new image selected
       if (formData.image) {
