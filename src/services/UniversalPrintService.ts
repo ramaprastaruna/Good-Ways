@@ -1,6 +1,8 @@
 // Universal Print Service for Thermal Printer (58mm)
-// Using native system print dialog via window.print()
+// Using jsPDF for proper 58mm PDF generation
 // Works on all platforms: iOS, Android, Desktop
+
+import jsPDF from 'jspdf'
 
 interface ReceiptData {
   transactionNumber: string
@@ -47,267 +49,207 @@ class UniversalPrintService {
   }
 
   /**
-   * Print receipt using iOS native print dialog
+   * Print receipt using jsPDF for proper 58mm thermal printer
    */
   async printReceipt(receiptData: ReceiptData): Promise<void> {
-    // Create print window with 58mm width (~220px at 96dpi)
-    const printWindow = window.open('', '_blank', 'width=220,height=600')
+    try {
+      // Generate PDF with exact 58mm width
+      const pdf = this.generateReceiptPDF(receiptData)
 
-    if (!printWindow) {
-      throw new Error('Popup blocked. Izinkan popup untuk mencetak.')
+      // Open PDF in new window for printing
+      const pdfBlob = pdf.output('blob')
+      const pdfUrl = URL.createObjectURL(pdfBlob)
+
+      // Open in new window
+      const printWindow = window.open(pdfUrl, '_blank')
+
+      if (!printWindow) {
+        throw new Error('Popup blocked. Izinkan popup untuk mencetak.')
+      }
+
+      // Auto trigger print dialog after PDF loads
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print()
+        }, 250)
+      }
+
+      // Cleanup URL after use
+      setTimeout(() => {
+        URL.revokeObjectURL(pdfUrl)
+      }, 10000)
+
+    } catch (error) {
+      console.error('PDF generation error:', error)
+      throw new Error('Gagal membuat PDF struk')
     }
-
-    // Generate receipt HTML optimized for 58mm thermal printer
-    const receiptHTML = this.generateReceiptHTML(receiptData)
-
-    // Write HTML to print window
-    printWindow.document.write(receiptHTML)
-    printWindow.document.close()
-
-    // Wait for content to load
-    await new Promise(resolve => setTimeout(resolve, 250))
-
-    // Trigger print dialog
-    printWindow.focus()
-    printWindow.print()
-
-    // Close print window after printing
-    setTimeout(() => {
-      printWindow.close()
-    }, 100)
   }
 
   /**
-   * Generate receipt HTML optimized for 58mm thermal printer
+   * Generate PDF receipt with proper 58mm size
    */
-  private generateReceiptHTML(data: ReceiptData): string {
-    const itemsHTML = data.items.map(item => {
-      const variantHTML = item.variant ? `
-        <div style="font-size: 9px; color: #666; margin-left: 4px;">- ${item.variant}</div>
-      ` : ''
+  private generateReceiptPDF(data: ReceiptData): jsPDF {
+    // 58mm = 164.41 points (1mm = 2.83465 points)
+    // Auto height based on content
+    const pageWidth = 58 // mm
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [pageWidth, 297], // Start with A4 height, will trim
+      compress: true
+    })
 
-      const addOnsHTML = item.addOns && item.addOns.length > 0 ? item.addOns.map(addon => `
-        <div style="font-size: 9px; color: #666; margin-left: 4px; display: flex; justify-content: space-between;">
-          <span style="max-width: 60%;">- ${addon.name}</span>
-          <span>+${this.formatPrice(addon.price)}</span>
-        </div>
-      `).join('') : ''
+    // Set font
+    pdf.setFont('courier', 'normal')
 
-      return `
-        <div style="margin-bottom: 8px;">
-          <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;">
-            <span style="max-width: 60%;">${item.product_name}</span>
-            <span>${this.formatPrice(item.totalPrice / item.quantity)}</span>
-          </div>
-          ${variantHTML}
-          ${addOnsHTML}
-          <div style="display: flex; justify-content: space-between; font-size: 9px; margin-top: 2px;">
-            <span>${item.quantity}x</span>
-            <span style="font-weight: bold;">${this.formatPrice(item.totalPrice)}</span>
-          </div>
-        </div>
-      `
-    }).join('')
+    let y = 5 // Start position
+    const leftMargin = 3
+    const rightMargin = pageWidth - 3
 
-    const paymentHTML = data.paymentMethod ? `
-      <div style="border-top: 1px dashed #999; padding-top: 6px; margin-top: 6px;">
-        <div style="text-align: center; font-weight: bold; font-size: 10px; margin-bottom: 6px;">PEMBAYARAN</div>
-        <div style="display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 3px;">
-          <span>Metode:</span>
-          <span style="font-weight: bold;">${data.paymentMethod.toUpperCase()}</span>
-        </div>
-        ${data.paymentMethod === 'cash' && data.cashReceived ? `
-          <div style="display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 3px;">
-            <span>Bayar:</span>
-            <span>${this.formatPrice(data.cashReceived)}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 9px; font-weight: bold;">
-            <span>Kembalian:</span>
-            <span>${this.formatPrice(data.cashChange || 0)}</span>
-          </div>
-        ` : ''}
-        ${(data.paymentMethod === 'qris' || data.paymentMethod === 'debit') && data.referenceNumber ? `
-          <div style="display: flex; justify-content: space-between; font-size: 9px;">
-            <span>Ref:</span>
-            <span style="font-weight: bold; word-break: break-all;">${data.referenceNumber}</span>
-          </div>
-        ` : ''}
-      </div>
-    ` : ''
+    // Helper function to add text
+    const addText = (text: string, size: number, style: 'normal' | 'bold' = 'normal', align: 'left' | 'center' | 'right' = 'left') => {
+      pdf.setFont('courier', style)
+      pdf.setFontSize(size)
 
-    const openBillHTML = !data.paymentMethod && data.customerName ? `
-      <div style="border-top: 1px dashed #999; padding-top: 6px; margin-top: 6px; text-align: center;">
-        <div style="font-weight: bold; font-size: 10px; color: #d97706;">** OPEN BILL **</div>
-        <div style="font-size: 9px; color: #666; margin-top: 2px;">Belum dibayar</div>
-      </div>
-    ` : ''
+      if (align === 'center') {
+        pdf.text(text, pageWidth / 2, y, { align: 'center' })
+      } else if (align === 'right') {
+        pdf.text(text, rightMargin, y, { align: 'right' })
+      } else {
+        pdf.text(text, leftMargin, y)
+      }
 
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <meta name="description" content="Struk Pembayaran Good Ways POS">
-        <title>Struk - ${data.transactionNumber}</title>
-        <style>
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
+      y += size * 0.4 // Line height
+    }
 
-          /* Page setup untuk printer thermal 58mm (58mm = ~220px at 96dpi) */
-          /* Multiple @page rules for better browser compatibility */
-          @page {
-            size: 58mm auto;
-            margin: 0mm;
-          }
+    // Helper for justified text (left and right)
+    const addJustified = (left: string, right: string, size: number) => {
+      pdf.setFontSize(size)
+      pdf.setFont('courier', 'normal')
+      pdf.text(left, leftMargin, y)
+      pdf.text(right, rightMargin, y, { align: 'right' })
+      y += size * 0.4
+    }
 
-          @page :first {
-            size: 58mm auto;
-            margin: 0mm;
-          }
+    // Helper for line separator
+    const addLine = (_style: 'solid' | 'dashed' = 'dashed') => {
+      // Draw simple line (jsPDF doesn't support dashed lines easily)
+      pdf.line(leftMargin, y, rightMargin, y)
+      y += 2
+    }
 
-          html {
-            width: 58mm;
-            height: auto;
-            margin: 0;
-            padding: 0;
-          }
+    // Header
+    addText('GOOD WAYS', 12, 'bold', 'center')
+    addText('Sistem Kasir Digital', 8, 'normal', 'center')
+    y += 1
+    addLine('solid')
 
-          body {
-            font-family: 'Courier New', monospace;
-            width: 58mm;
-            max-width: 58mm;
-            min-width: 58mm;
-            height: auto;
-            margin: 0;
-            padding: 3mm;
-            background: white;
-            color: black;
-            font-size: 10px;
-            line-height: 1.3;
-          }
+    // Transaction Info
+    addJustified('Kasir:', data.cashierName, 8)
+    addJustified('Tanggal:', this.formatDate(data.transactionDate), 7)
+    addJustified('No. Trx:', data.transactionNumber, 8)
 
-          .receipt-container {
-            width: 100%;
-            max-width: 52mm;
-            height: auto;
-          }
+    if (data.customerName) {
+      addJustified('Pelanggan:', data.customerName, 8)
+    }
 
-          /* Media query khusus untuk print */
-          @media print {
-            @page {
-              size: 58mm auto !important;
-              margin: 0mm !important;
-            }
+    y += 1
+    addLine()
 
-            html {
-              width: 58mm !important;
-              height: auto !important;
-            }
+    // Items Section
+    addText('RINCIAN PESANAN', 9, 'bold', 'center')
+    y += 1
+    addLine()
 
-            body {
-              width: 58mm !important;
-              max-width: 58mm !important;
-              min-width: 58mm !important;
-              height: auto !important;
-              margin: 0 !important;
-              padding: 3mm !important;
-              font-size: 10px !important;
-            }
+    // Items
+    data.items.forEach(item => {
+      // Product name and unit price
+      pdf.setFont('courier', 'bold')
+      pdf.setFontSize(9)
+      pdf.text(item.product_name, leftMargin, y)
+      pdf.text(this.formatPrice(item.totalPrice / item.quantity), rightMargin, y, { align: 'right' })
+      y += 3.5
 
-            .receipt-container {
-              width: 100% !important;
-              max-width: 52mm !important;
-              height: auto !important;
-            }
+      // Variant
+      if (item.variant) {
+        pdf.setFont('courier', 'normal')
+        pdf.setFontSize(7)
+        pdf.text(`  - ${item.variant}`, leftMargin, y)
+        y += 2.8
+      }
 
-            .no-print {
-              display: none !important;
-            }
-          }
+      // Add-ons
+      if (item.addOns && item.addOns.length > 0) {
+        item.addOns.forEach(addon => {
+          pdf.setFontSize(7)
+          pdf.text(`  - ${addon.name}`, leftMargin, y)
+          pdf.text(`+${this.formatPrice(addon.price)}`, rightMargin, y, { align: 'right' })
+          y += 2.8
+        })
+      }
 
-          /* Prevent page breaks inside important elements */
-          .receipt-container, .receipt-container > div {
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
+      // Quantity and total
+      pdf.setFontSize(8)
+      pdf.text(`  ${item.quantity}x`, leftMargin, y)
+      pdf.setFont('courier', 'bold')
+      pdf.text(this.formatPrice(item.totalPrice), rightMargin, y, { align: 'right' })
+      y += 4
+    })
 
-          /* iOS and Safari specific */
-          @supports (-webkit-touch-callout: none) {
-            body {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="receipt-container">
-          <!-- Header -->
-          <div style="text-align: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid #000;">
-            <div style="font-size: 14px; font-weight: bold; margin-bottom: 2px;">GOOD WAYS</div>
-            <div style="font-size: 9px; color: #666;">Sistem Kasir Digital</div>
-          </div>
+    addLine()
 
-          <!-- Transaction Info -->
-          <div style="border-bottom: 1px dashed #999; padding-bottom: 6px; margin-bottom: 6px; font-size: 9px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
-              <span>Kasir:</span>
-              <span style="font-weight: bold;">${data.cashierName}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
-              <span>Tanggal:</span>
-              <span style="font-size: 8px;">${this.formatDate(data.transactionDate)}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
-              <span>No. Trx:</span>
-              <span style="font-weight: bold;">${data.transactionNumber}</span>
-            </div>
-            ${data.customerName ? `
-              <div style="display: flex; justify-content: space-between;">
-                <span>Pelanggan:</span>
-                <span style="font-weight: bold;">${data.customerName}</span>
-              </div>
-            ` : ''}
-          </div>
+    // Total
+    addJustified('Subtotal:', this.formatPrice(data.subtotal), 8)
+    pdf.setFont('courier', 'bold')
+    pdf.setFontSize(10)
+    pdf.text('TOTAL:', leftMargin, y)
+    pdf.text(this.formatPrice(data.total), rightMargin, y, { align: 'right' })
+    y += 5
+    addLine()
 
-          <!-- Items -->
-          <div style="border-bottom: 1px dashed #999; padding-bottom: 6px; margin-bottom: 6px;">
-            <div style="text-align: center; font-weight: bold; font-size: 10px; margin-bottom: 6px;">RINCIAN PESANAN</div>
-            ${itemsHTML}
-          </div>
+    // Payment Info
+    if (data.paymentMethod) {
+      addText('PEMBAYARAN', 9, 'bold', 'center')
+      y += 1
+      addJustified('Metode:', data.paymentMethod.toUpperCase(), 8)
 
-          <!-- Total -->
-          <div style="border-bottom: 1px dashed #999; padding-bottom: 6px; margin-bottom: 6px;">
-            <div style="display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 3px;">
-              <span>Subtotal:</span>
-              <span>${this.formatPrice(data.subtotal)}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold;">
-              <span>TOTAL:</span>
-              <span>${this.formatPrice(data.total)}</span>
-            </div>
-          </div>
+      if (data.paymentMethod === 'cash' && data.cashReceived) {
+        addJustified('Bayar:', this.formatPrice(data.cashReceived), 8)
+        pdf.setFont('courier', 'bold')
+        pdf.setFontSize(8)
+        pdf.text('Kembalian:', leftMargin, y)
+        pdf.text(this.formatPrice(data.cashChange || 0), rightMargin, y, { align: 'right' })
+        y += 3.5
+      }
 
-          <!-- Payment Info -->
-          ${paymentHTML}
+      if ((data.paymentMethod === 'qris' || data.paymentMethod === 'debit') && data.referenceNumber) {
+        addJustified('Ref:', data.referenceNumber, 7)
+      }
 
-          <!-- Open Bill -->
-          ${openBillHTML}
+      y += 1
+      addLine()
+    }
 
-          <!-- Footer -->
-          <div style="text-align: center; font-size: 9px; color: #666; margin-top: 8px; padding-top: 6px; border-top: 1px dashed #999;">
-            <div style="margin-bottom: 2px;">Terima kasih!</div>
-            <div style="margin-bottom: 2px;">atas kunjungan Anda</div>
-            <div style="margin-top: 4px; font-size: 8px;">Powered by Good Ways POS</div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
+    // Open Bill
+    if (!data.paymentMethod && data.customerName) {
+      addText('** OPEN BILL **', 9, 'bold', 'center')
+      addText('Belum dibayar', 7, 'normal', 'center')
+      y += 1
+      addLine()
+    }
+
+    // Footer
+    y += 2
+    addLine()
+    addText('Terima kasih!', 8, 'normal', 'center')
+    addText('atas kunjungan Anda', 8, 'normal', 'center')
+    y += 2
+    addText('Powered by Good Ways POS', 7, 'normal', 'center')
+
+    // Add some padding at bottom
+    y += 5
+
+    return pdf
   }
 
   /**
