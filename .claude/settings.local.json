@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(dir:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm run dev:*)",
+      "Bash(if exist \"node_modules\\\\.vite\" rmdir /s /q \"node_modules\\\\.vite\")",
+      "Bash(npm run build:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(touch:*)",
+      "Bash(npx tsc:*)",
+      "Bash(findstr:*)",
+      "Bash(grep:*)"
+    ]
+  }
+}
